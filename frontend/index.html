@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#6558c7">
+
+  <title>VetCare | Clínica Veterinária</title>
+
+  <link rel="stylesheet" href="./style.css">
+  <script src="./script.js" defer></script>
+</head>
+
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="VetCare página inicial">
+      <span class="brand-icon">✚</span>
+
+      <span>
+        <strong>VetCare</strong>
+        <small>CLÍNICA VETERINÁRIA</small>
+      </span>
+    </a>
+
+    <span class="topbar-label">
+      <span class="online-dot"></span>
+      Sistema de gerenciamento
+    </span>
+  </header>
+
+  <main class="container">
+    <section class="welcome">
+      <div>
+        <p class="eyebrow">PAINEL DE CONTROLE</p>
+        <h1>Cadastro de animais</h1>
+
+        <p class="subtitle">
+          Organize as informações dos pacientes da clínica em um só lugar.
+        </p>
+      </div>
+
+      <div class="welcome-paw" aria-hidden="true">🐾</div>
+    </section>
+
+    <section class="stats" aria-label="Resumo dos cadastros">
+      <article class="stat-card">
+        <span class="stat-icon purple">🐾</span>
+
+        <div>
+          <p>Total de animais</p>
+          <strong id="totalAnimais">0</strong>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-icon pink">🐶</span>
+
+        <div>
+          <p>Cachorros</p>
+          <strong id="totalCachorros">0</strong>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-icon blue">🐱</span>
+
+        <div>
+          <p>Gatos</p>
+          <strong id="totalGatos">0</strong>
+        </div>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel form-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">NOVO REGISTRO</p>
+            <h2 id="tituloFormulario">Cadastrar animal</h2>
+          </div>
+
+          <span class="heading-icon">＋</span>
+        </div>
+
+        <form id="animalForm">
+          <input type="hidden" id="animalId">
+
+          <label for="nome">
+            Nome do animal <span>*</span>
+          </label>
+
+          <input
+            id="nome"
+            name="nome"
+            type="text"
+            maxlength="100"
+            placeholder="Ex.: Mel"
+            required
+          >
+
+          <div class="two-columns">
+            <div>
+              <label for="especie">
+                Espécie <span>*</span>
+              </label>
+
+              <select id="especie" name="especie" required>
+                <option value="">Selecione</option>
+                <option value="Cachorro">Cachorro</option>
+                <option value="Gato">Gato</option>
+                <option value="Ave">Ave</option>
+                <option value="Coelho">Coelho</option>
+                <option value="Roedor">Roedor</option>
+                <option value="Réptil">Réptil</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="idade">
+                Idade (anos) <span>*</span>
+              </label>
+
+              <input
+                id="idade"
+                name="idade"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Ex.: 3"
+                required
+              >
+            </div>
+          </div>
+
+          <label for="raca">
+            Raça <span>*</span>
+          </label>
+
+          <input
+            id="raca"
+            name="raca"
+            type="text"
+            maxlength="80"
+            placeholder="Ex.: Vira-lata"
+            required
+          >
+
+          <label for="responsavel">
+            Nome do responsável <span>*</span>
+          </label>
+
+          <input
+            id="responsavel"
+            name="responsavel"
+            type="text"
+            maxlength="120"
+            placeholder="Ex.: Ana Souza"
+            required
+          >
+
+          <div class="form-actions">
+            <button
+              class="btn btn-primary"
+              type="submit"
+              id="botaoSalvar"
+            >
+              Cadastrar animal
+            </button>
+
+            <button
+              class="btn btn-light hidden"
+              type="button"
+              id="botaoCancelar"
+            >
+              Cancelar edição
+            </button>
+          </div>
+
+          <p class="form-note">
+            Os campos marcados com * são obrigatórios.
+          </p>
+        </form>
+      </article>
+
+      <article class="panel list-panel">
+        <div class="panel-heading list-heading">
+          <div>
+            <p class="eyebrow">BASE DE PACIENTES</p>
+            <h2>Animais cadastrados</h2>
+          </div>
+
+          <span class="count-pill" id="contadorLista">
+            0 registros
+          </span>
+        </div>
+
+        <div class="search-row">
+          <label class="search-box" for="pesquisa">
+            <span aria-hidden="true">⌕</span>
+
+            <input
+              id="pesquisa"
+              type="search"
+              placeholder="Buscar por animal ou responsável..."
+              autocomplete="off"
+            >
+          </label>
+
+          <button
+            class="btn btn-light btn-refresh"
+            type="button"
+            id="botaoAtualizar"
+            title="Atualizar lista"
+          >
+            ↻
+          </button>
+        </div>
+
+        <div
+          id="mensagem"
+          class="message hidden"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Animal</th>
+                <th>Espécie / raça</th>
+                <th>Idade</th>
+                <th>Responsável</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody id="listaAnimais">
+              <tr>
+                <td colspan="5" class="empty-state">
+                  Carregando animais...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-footnote">
+          Os registros são salvos no banco de dados MySQL.
+        </p>
+      </article>
+    </section>
+
+    <footer>
+      VetCare · Sistema acadêmico de gerenciamento veterinário
+    </footer>
+  </main>
+</body>
+</html>

@@ -7,23 +7,23 @@ import {
   cadastrarAnimal,
   atualizarAnimal,
   excluirAnimal
-} from '../controllers/livrosController.js';
+} from '../controllers/clinicaControllers.js';
 
 const router = Router();
 
-// READ: listar todos os animais
+// READ: listar animais
 router.get('/', listarAnimais);
 
-// READ: consultar um animal específico
+// READ: buscar animal pelo ID
 router.get('/:id', buscarAnimalPorId);
 
-// CREATE: cadastrar um novo animal
+// CREATE: cadastrar animal
 router.post('/', cadastrarAnimal);
 
-// UPDATE: editar um animal existente
+// UPDATE: editar animal
 router.put('/:id', atualizarAnimal);
 
-// DELETE: excluir um animal
+// DELETE: excluir animal
 router.delete('/:id', excluirAnimal);
 
 export default router;

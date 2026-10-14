@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import animaisRoutes from './routes/clinicaRouts.js';
-import corsMiddleware from './middlewares/corsMiddleware.js';
+import corsMiddleware from './middlewares/corsMidlleware.js';
 import { testarConexao } from './database/conexao.js';
 
 const app = express();

@@ -1,5 +1,4 @@
-
-const API_URL = '/api/animais';
+const API_URL = 'http://localhost:3000/api/animais';
 
 const form = document.querySelector('#animalForm');
 const listaAnimais = document.querySelector('#listaAnimais');
@@ -14,28 +13,30 @@ const botaoAtualizar = document.querySelector('#botaoAtualizar');
 let animais = [];
 let temporizadorMensagem;
 
+// Exibe mensagens de sucesso ou erro
 function mostrarMensagem(texto, tipo = 'success') {
   clearTimeout(temporizadorMensagem);
 
   mensagem.textContent = texto;
   mensagem.className = `message ${tipo}`;
+  mensagem.classList.remove('hidden');
 
   temporizadorMensagem = setTimeout(() => {
     mensagem.classList.add('hidden');
   }, 4500);
 }
 
+// Envia requisições para a API
 async function requisicao(url, opcoes = {}) {
   const resposta = await fetch(url, {
     ...opcoes,
-
     headers: {
       'Content-Type': 'application/json',
       ...(opcoes.headers || {})
     }
   });
 
-  let dados;
+  let dados = {};
 
   try {
     dados = await resposta.json();
@@ -45,33 +46,59 @@ async function requisicao(url, opcoes = {}) {
 
   if (!resposta.ok) {
     throw new Error(
-      dados.mensagem ||
-      'Ocorreu um erro ao realizar a operação.'
+      dados.mensagem || 'Ocorreu um erro ao realizar a operação.'
     );
   }
 
   return dados;
 }
 
-// Busca os animais cadastrados no banco
+// Formata a data e o horário para exibição
+function formatarDataHora(valor) {
+  if (!valor) {
+    return 'Não informado';
+  }
+
+  const data = new Date(valor);
+
+  if (Number.isNaN(data.getTime())) {
+    return 'Não informado';
+  }
+
+  return data.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// READ: carrega os animais cadastrados
 async function carregarAnimais() {
   listaAnimais.innerHTML = `
     <tr>
-      <td colspan="5" class="empty-state">
+      <td colspan="6" class="empty-state">
         Carregando animais...
       </td>
     </tr>
   `;
 
   try {
-    animais = await requisicao(API_URL);
+    const dados = await requisicao(API_URL);
+
+    animais = Array.isArray(dados)
+      ? dados
+      : Array.isArray(dados.animais)
+        ? dados.animais
+        : [];
 
     atualizarResumo();
     renderizarAnimais();
   } catch (erro) {
     listaAnimais.innerHTML = `
       <tr>
-        <td colspan="5" class="empty-state">
+        <td colspan="6" class="empty-state">
           Não foi possível carregar os animais.
           Confira se o servidor e o MySQL estão funcionando.
         </td>
@@ -89,16 +116,18 @@ function atualizarResumo() {
 
   document.querySelector('#totalCachorros').textContent =
     animais.filter(
-      animal => animal.especie.toLowerCase() === 'cachorro'
+      animal =>
+        String(animal.especie).toLowerCase() === 'cachorro'
     ).length;
 
   document.querySelector('#totalGatos').textContent =
     animais.filter(
-      animal => animal.especie.toLowerCase() === 'gato'
+      animal =>
+        String(animal.especie).toLowerCase() === 'gato'
     ).length;
 }
 
-// Evita interpretar dados do usuário como HTML
+// Protege os dados antes de inseri-los no HTML
 function escaparHTML(valor) {
   return String(valor ?? '').replace(/[&<>"']/g, caractere => ({
     '&': '&amp;',
@@ -118,7 +147,7 @@ function emojiAnimal(especie) {
   if (tipo === 'ave') return '🐦';
   if (tipo === 'coelho') return '🐰';
   if (tipo === 'roedor') return '🐹';
-  if (tipo === 'réptil') return '🦎';
+  if (tipo === 'réptil' || tipo === 'reptil') return '🦎';
 
   return '🐾';
 }
@@ -136,7 +165,7 @@ function renderizarAnimais() {
       animal.raca,
       animal.responsavel
     ].some(valor =>
-      String(valor)
+      String(valor ?? '')
         .toLocaleLowerCase('pt-BR')
         .includes(termo)
     )
@@ -150,7 +179,7 @@ function renderizarAnimais() {
   if (filtrados.length === 0) {
     listaAnimais.innerHTML = `
       <tr>
-        <td colspan="5" class="empty-state">
+        <td colspan="6" class="empty-state">
           ${
             termo
               ? 'Nenhum animal corresponde à busca.'
@@ -174,7 +203,7 @@ function renderizarAnimais() {
           <span>
             ${escaparHTML(animal.nome)}
             <span class="cell-secondary">
-              Código #${animal.id}
+              Código #${escaparHTML(animal.id)}
             </span>
           </span>
         </div>
@@ -191,11 +220,17 @@ function renderizarAnimais() {
       </td>
 
       <td>
-        ${animal.idade}
+        ${escaparHTML(animal.idade)}
         ${Number(animal.idade) === 1 ? 'ano' : 'anos'}
       </td>
 
-      <td>${escaparHTML(animal.responsavel)}</td>
+      <td>
+        ${escaparHTML(animal.responsavel)}
+      </td>
+
+      <td>
+        ${escaparHTML(formatarDataHora(animal.criado_em))}
+      </td>
 
       <td>
         <div class="action-buttons">
@@ -203,7 +238,7 @@ function renderizarAnimais() {
             class="icon-button"
             type="button"
             data-acao="editar"
-            data-id="${animal.id}"
+            data-id="${escaparHTML(animal.id)}"
             aria-label="Editar ${escaparHTML(animal.nome)}"
             title="Editar"
           >
@@ -214,7 +249,7 @@ function renderizarAnimais() {
             class="icon-button delete"
             type="button"
             data-acao="excluir"
-            data-id="${animal.id}"
+            data-id="${escaparHTML(animal.id)}"
             aria-label="Excluir ${escaparHTML(animal.nome)}"
             title="Excluir"
           >
@@ -238,7 +273,7 @@ function limparFormulario() {
   botaoCancelar.classList.add('hidden');
 }
 
-// CREATE e UPDATE: envio do formulário
+// CREATE e UPDATE: envia os dados do formulário
 form.addEventListener('submit', async evento => {
   evento.preventDefault();
 
@@ -279,18 +314,20 @@ form.addEventListener('submit', async evento => {
     );
 
     limparFormulario();
-
     await carregarAnimais();
 
     mostrarMensagem(
-      resultado.mensagem || 'Operação realizada com sucesso!'
+      resultado.mensagem ||
+      (editando
+        ? 'Animal atualizado com sucesso!'
+        : 'Animal cadastrado com sucesso!')
     );
   } catch (erro) {
     mostrarMensagem(erro.message, 'error');
   }
 });
 
-// Trata os botões de editar e excluir
+// Gerencia os botões de editar e excluir
 listaAnimais.addEventListener('click', async evento => {
   const botao = evento.target.closest('button[data-acao]');
 
@@ -302,9 +339,12 @@ listaAnimais.addEventListener('click', async evento => {
     item => Number(item.id) === id
   );
 
-  if (!animal) return;
+  if (!animal) {
+    mostrarMensagem('Animal não encontrado na lista.', 'error');
+    return;
+  }
 
-  // EDIT: preenche o formulário para edição
+  // EDIT: preenche o formulário com os dados do animal
   if (botao.dataset.acao === 'editar') {
     animalId.value = animal.id;
 
@@ -332,7 +372,7 @@ listaAnimais.addEventListener('click', async evento => {
     return;
   }
 
-  // DELETE: solicita confirmação antes de excluir
+  // DELETE: exclui o animal após confirmação
   if (botao.dataset.acao === 'excluir') {
     const confirmar = window.confirm(
       `Deseja realmente excluir o cadastro de ${animal.nome}?`
@@ -346,25 +386,25 @@ listaAnimais.addEventListener('click', async evento => {
         { method: 'DELETE' }
       );
 
+      if (Number(animalId.value) === id) {
+        limparFormulario();
+      }
+
       await carregarAnimais();
 
       mostrarMensagem(
         resultado.mensagem || 'Animal excluído com sucesso!'
       );
-
-      if (Number(animalId.value) === id) {
-        limparFormulario();
-      }
     } catch (erro) {
       mostrarMensagem(erro.message, 'error');
     }
   }
 });
 
-// Botão para cancelar a edição
+// Cancela a edição
 botaoCancelar.addEventListener('click', limparFormulario);
 
-// Botão para atualizar a lista
+// Atualiza a lista manualmente
 botaoAtualizar.addEventListener('click', carregarAnimais);
 
 // Pesquisa os animais enquanto o usuário digita
